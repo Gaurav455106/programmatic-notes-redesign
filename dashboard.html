@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Programmatic Notes Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+:root{--bg:#F5F6FA;--surface:#FFFFFF;--ink:#0F1C44;--muted:#5A6380;--line:#E2E5EE;--navy:#13215A;--navy-ink:#fff;--yellow:#FFC72C;--yellow-soft:#FFF4D4;--bar:#13215A;--bar2:#FFC72C;--good:#16764A;--bad:#B42318;
+--display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;--body:"Source Sans 3","Segoe UI",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#0B1230;--surface:#141E48;--ink:#E9ECF8;--muted:#A0A9C8;--line:#26325F;--navy:#070E28;--yellow-soft:#382E0E;--bar:#93A9FF;--good:#6DD49F;--bad:#FF928A;color-scheme:dark}}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--body);-webkit-font-smoothing:antialiased}
+header{background:var(--navy);color:var(--navy-ink);padding:16px max(16px,4vw);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+header b{font-family:var(--display);font-size:1.2rem}
+header small{display:block;color:#AFB8DA;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+main{max-width:1100px;margin:0 auto;padding:24px max(16px,4vw) 64px;display:grid;gap:18px}
+h1,h2{font-family:var(--display);margin:0;line-height:1.15}
+h2{font-size:1.15rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:12px;min-width:0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:2px}
+.tile span{font-size:.74rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.tile b{font-family:var(--display);font-size:1.9rem;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile.key{background:var(--yellow-soft)}
+.btn{border:0;background:var(--yellow);color:#0F1C44;font:700 .95rem var(--body);border-radius:10px;padding:10px 16px;cursor:pointer;min-height:42px}
+.btn.ghost{background:transparent;color:inherit;border:1.5px solid currentColor}
+input,select{font:600 1rem var(--body);padding:9px 12px;border-radius:9px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);min-height:42px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.login{max-width:420px;margin:8vh auto 0}
+.err{color:var(--bad);font-weight:600}
+.note{color:var(--muted);font-size:.9rem}
+/* column chart */
+.cols{display:flex;align-items:flex-end;gap:3px;height:180px;border-bottom:1.5px solid var(--line);position:relative}
+.cols .c{flex:1;display:flex;align-items:flex-end;height:100%;cursor:default;position:relative}
+.cols .c i{display:block;width:100%;background:var(--bar);border-radius:4px 4px 0 0;min-height:2px}
+.cols .c:hover i,.cols .c:focus i{background:var(--bar2)}
+.axis{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);font-weight:600}
+.tip{position:fixed;pointer-events:none;background:var(--navy);color:#fff;border-radius:8px;padding:6px 10px;font-size:.85rem;font-weight:600;z-index:9;white-space:nowrap}
+/* tables with inline bars */
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.95rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td.n{font-variant-numeric:tabular-nums;text-align:right}
+th.n{text-align:right}
+.bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden;min-width:80px}
+.bar i{display:block;height:100%;background:var(--bar);border-radius:5px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:18px}
+</style>
+</head>
+<body>
+<header><div><small>Kraftshala · MLP</small><b>Programmatic Notes · Analytics</b></div>
+  <div class="row" id="ctrl" hidden><select id="days" aria-label="Date range"><option value="1">Today</option><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option></select><button class="btn" id="refresh">Refresh</button><button class="btn ghost" id="csv">Students CSV</button><button class="btn ghost" id="logout">Lock</button></div></header>
+<main>
+  <form class="card login" id="login">
+    <h1>Dashboard</h1>
+    <p class="note" id="cfgNote">Enter the passcode you set in <code>schema.sql</code>.</p>
+    <input id="pass" type="password" placeholder="Passcode" autocomplete="current-password" aria-label="Passcode">
+    <button class="btn" type="submit">Open dashboard</button>
+    <p class="err" id="err" aria-live="polite"></p>
+  </form>
+  <div id="dash" hidden style="display:grid;gap:18px">
+    <div class="tiles" id="tiles"></div>
+    <section class="card"><h2>Daily unique visitors</h2><div class="cols" id="daily" role="img" aria-label="Daily unique visitors"></div><div class="axis"><span id="d0"></span><span id="d1"></span></div></section>
+    <div class="grid2">
+      <section class="card"><h2>Modules</h2><p class="note">Opened by how many students, and how many marked it done.</p><div class="scroll"><table id="mods"></table></div></section>
+      <section class="card"><h2>Quiz, lab and drills</h2><div class="scroll"><table id="scores"></table></div><h2 style="margin-top:8px">Devices</h2><div id="devices" class="note"></div></section>
+    </div>
+    <section class="card"><div class="row" style="justify-content:space-between"><h2>Students who added their name</h2><input id="find" type="search" placeholder="Filter by name or batch" aria-label="Filter students"></div><div class="scroll"><table id="students"></table></div></section>
+  </div>
+</main>
+<div class="tip" id="tip" hidden></div>
+<script src="config.js"></script>
+<script>
+(function(){
+var cfg=window.PN_CONFIG||{},url=(cfg.supabaseUrl||'').replace(/\/+$/,''),key=cfg.supabaseKey||'';
+var $=function(s){return document.querySelector(s)},data=null,pass='';
+var NAMES={home:'Start',why:'Why it exists',eco:'Ecosystem',rtb:'How an ad is served',dsps:'Which DSP',deals:'Deals',structure:'DV360 structure',tour:'Platform tour',pacing:'Pacing',freq:'Frequency & reach',bidding:'Bidding',target:'Targeting',data:'Data & ads.txt',safety:'Brand safety & IVT',creative:'Creatives',floodlight:'Floodlight',cm360:'CM360',plan:'Media planning',cases:'Structuring cases',optimise:'Optimisation lab',viva:'Viva prep',quiz:'Final quiz',glossary:'Glossary',setting_finder:'Setting finder game',brand_safety:'Brand-safety drill',ufc_rules:'UFC rules drill'};
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function nm(k){return NAMES[k]||k}
+if(!url||!key){$('#cfgNote').innerHTML='<b>Analytics isn\'t configured yet.</b> Add your Supabase URL and key to <code>config.js</code> (see README).';$('#pass').disabled=true;}
+try{pass=sessionStorage.getItem('pn-dash')||''}catch(e){}
+function load(){
+  var h={'apikey':key,'Content-Type':'application/json'};if(/^eyJ/.test(key))h.Authorization='Bearer '+key;
+  return fetch(url+'/rest/v1/rpc/get_stats',{method:'POST',headers:h,body:JSON.stringify({p_pass:pass,p_days:+$('#days').value})})
+   .then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.message||'Request failed');return j})});
+}
+function show(){load().then(function(j){data=j;try{sessionStorage.setItem('pn-dash',pass)}catch(e){}$('#login').hidden=true;$('#dash').hidden=false;$('#ctrl').hidden=false;render();})
+ .catch(function(e){$('#err').textContent=/passcode/.test(e.message)?'Wrong passcode.':'Could not load: '+e.message;$('#login').hidden=false;$('#dash').hidden=true;});}
+$('#login').addEventListener('submit',function(e){e.preventDefault();pass=$('#pass').value;$('#err').textContent='';show();});
+$('#refresh').addEventListener('click',show);$('#days').addEventListener('change',show);
+$('#logout').addEventListener('click',function(){pass='';try{sessionStorage.removeItem('pn-dash')}catch(e){}location.reload();});
+var tip=$('#tip');
+function hover(el,text){el.addEventListener('mousemove',function(e){tip.hidden=false;tip.textContent=text;tip.style.left=Math.min(e.clientX+12,innerWidth-tip.offsetWidth-8)+'px';tip.style.top=(e.clientY-36)+'px'});el.addEventListener('mouseleave',function(){tip.hidden=true});el.addEventListener('focus',function(){var r=el.getBoundingClientRect();tip.hidden=false;tip.textContent=text;tip.style.left=r.left+'px';tip.style.top=(r.top-36)+'px'});el.addEventListener('blur',function(){tip.hidden=true});}
+function render(){
+  var t=data.totals||{};
+  $('#tiles').innerHTML=[['Unique visitors',t.visitors,1],['Sessions',t.sessions],['Module views',t.views],['Named students',t.named],['Quizzes finished',t.quizzes],['Avg quiz score',t.avg_quiz_pct==null?'–':t.avg_quiz_pct+'%']]
+   .map(function(x){return '<div class="tile'+(x[2]?' key':'')+'"><span>'+x[0]+'</span><b>'+(x[1]==null?0:x[1])+'</b></div>'}).join('');
+  // fill missing days
+  var days=+$('#days').value,map={};(data.daily||[]).forEach(function(d){map[d.day]=d});var arr=[];
+  for(var i=days-1;i>=0;i--){var dt=new Date(Date.now()+5.5*3600e3-i*864e5).toISOString().slice(0,10);arr.push(map[dt]||{day:dt,visitors:0,views:0});}
+  var mx=Math.max.apply(null,arr.map(function(d){return d.visitors}).concat([1]));
+  var box=$('#daily');box.innerHTML='';
+  arr.forEach(function(d){var c=document.createElement('div');c.className='c';c.tabIndex=0;c.innerHTML='<i style="height:'+(d.visitors/mx*100)+'%"></i>';hover(c,d.day+' · '+d.visitors+' visitors · '+d.views+' module views');box.appendChild(c);});
+  $('#d0').textContent=arr[0].day;$('#d1').textContent=arr[arr.length-1].day;
+  var mods=data.modules||[],mv=Math.max.apply(null,mods.map(function(m){return m.viewers}).concat([1]));
+  $('#mods').innerHTML='<tr><th>Module</th><th>Students opened</th><th class="n">Views</th><th class="n">Marked done</th></tr>'+(mods.length?mods.map(function(m){return '<tr><td>'+esc(nm(m.module))+'</td><td><div class="bar" title="'+m.viewers+' students"><i style="width:'+(m.viewers/mv*100)+'%"></i></div></td><td class="n">'+m.views+'</td><td class="n">'+m.done+(m.viewers?' ('+Math.round(m.done/m.viewers*100)+'%)':'')+'</td></tr>'}).join(''):'<tr><td colspan="4" class="note">No data yet.</td></tr>');
+  var sc=data.scores||[];
+  $('#scores').innerHTML='<tr><th>Activity</th><th class="n">Attempts</th><th>Average</th><th class="n">Best</th></tr>'+(sc.length?sc.map(function(s){return '<tr><td>'+esc(nm(s.activity))+'</td><td class="n">'+s.attempts+'</td><td><div class="bar" title="'+s.avg_pct+'%"><i style="width:'+(s.avg_pct||0)+'%"></i></div><span class="note">'+s.avg_pct+'%</span></td><td class="n">'+s.best_pct+'%</td></tr>'}).join(''):'<tr><td colspan="4" class="note">No scores yet.</td></tr>');
+  $('#devices').textContent=(data.devices||[]).map(function(d){return d.device+': '+d.visitors}).join(' · ')||'No data yet.';
+  renderStudents();
+}
+function renderStudents(){
+  var q=($('#find').value||'').toLowerCase(),st=(data.students||[]).filter(function(s){return !q||((s.name||'')+' '+(s.batch||'')).toLowerCase().indexOf(q)>-1});
+  $('#students').innerHTML='<tr><th>Name</th><th>Batch</th><th class="n">Modules opened</th><th class="n">Marked done</th><th class="n">Best quiz</th><th class="n">Viva practice</th><th>Last seen</th></tr>'+(st.length?st.map(function(s){return '<tr><td>'+esc(s.name)+'</td><td>'+esc(s.batch)+'</td><td class="n">'+s.modules_opened+'</td><td class="n">'+s.modules_done+'</td><td class="n">'+(s.best_quiz_pct==null?'–':s.best_quiz_pct+'%')+'</td><td class="n">'+s.viva_practice+'</td><td>'+new Date(s.last_seen).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})+'</td></tr>'}).join(''):'<tr><td colspan="7" class="note">No named students yet.</td></tr>');
+}
+$('#find').addEventListener('input',function(){if(data)renderStudents()});
+$('#csv').addEventListener('click',function(){if(!data)return;var rows=[['name','batch','modules_opened','modules_done','best_quiz_pct','viva_practice','last_seen']].concat((data.students||[]).map(function(s){return [s.name,s.batch,s.modules_opened,s.modules_done,s.best_quiz_pct,s.viva_practice,s.last_seen]}));
+  var csv=rows.map(function(r){return r.map(function(v){v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(',')}).join('\n');
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='programmatic-students.csv';a.click();});
+if(pass&&url&&key)show();
+})();
+</script>
+</body>
+</html>
