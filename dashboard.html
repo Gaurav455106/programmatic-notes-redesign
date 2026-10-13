@@ -6,11 +6,13 @@
 <meta name="robots" content="noindex">
 <title>Programmatic Notes Analytics</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Source+Sans+3:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231C2B5C'/%3E%3Ctext x='16' y='22.5' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='700' font-size='17' fill='%23FBC93D'%3EP%3C/text%3E%3C/svg%3E">
 <style>
-:root{--bg:#F5F6FA;--surface:#FFFFFF;--ink:#0F1C44;--muted:#5A6380;--line:#E2E5EE;--navy:#13215A;--navy-ink:#fff;--yellow:#FFC72C;--yellow-soft:#FFF4D4;--bar:#13215A;--bar2:#FFC72C;--good:#16764A;--bad:#B42318;
---display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;--body:"Source Sans 3","Segoe UI",system-ui,sans-serif}
-@media (prefers-color-scheme:dark){:root{--bg:#0B1230;--surface:#141E48;--ink:#E9ECF8;--muted:#A0A9C8;--line:#26325F;--navy:#070E28;--yellow-soft:#382E0E;--bar:#93A9FF;--good:#6DD49F;--bad:#FF928A;color-scheme:dark}}
+:root{--bg:hsl(40 20% 98%);--bg2:hsl(40 14% 94%);--surface:#FFFFFF;--ink:hsl(24 12% 11%);--muted:hsl(28 6% 40%);--line:hsl(36 12% 87%);--edge:hsl(228 22% 72%);--navy:hsl(228 52% 24%);--navy-ink:#fff;--yellow:hsl(43 96% 58%);--yellow-soft:hsl(44 90% 92%);--bar:hsl(228 52% 24%);--bar2:hsl(43 96% 58%);--good:hsl(146 52% 30%);--bad:hsl(4 62% 45%);
+--sel:hsl(228 52% 24%);--on-sel:#fff;--shadow:0 1px 2px hsl(24 30% 20% / .05),0 10px 28px -14px hsl(24 30% 20% / .18);
+--display:"Geist","Segoe UI",system-ui,sans-serif;--body:"Geist","Segoe UI",system-ui,sans-serif;--mono:"Geist Mono",ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root{--bg:hsl(24 8% 8%);--bg2:hsl(24 7% 12%);--surface:hsl(24 7% 10.5%);--ink:hsl(40 15% 93%);--muted:hsl(30 7% 64%);--line:hsl(24 6% 19%);--edge:hsl(24 6% 30%);--navy:hsl(228 30% 30%);--yellow-soft:hsl(42 35% 15%);--bar:hsl(226 70% 80%);--bar2:hsl(43 90% 60%);--good:hsl(146 45% 62%);--bad:hsl(5 80% 72%);--sel:hsl(43 90% 60%);--on-sel:hsl(24 12% 11%);--shadow:0 1px 2px hsl(0 0% 0% / .35),0 10px 28px -14px hsl(0 0% 0% / .5);color-scheme:dark}}
 *{box-sizing:border-box}[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--body);-webkit-font-smoothing:antialiased}
 header{background:var(--navy);color:var(--navy-ink);padding:16px max(16px,4vw);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
@@ -49,10 +51,37 @@ th.n{text-align:right}
 .bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden;min-width:80px}
 .bar i{display:block;height:100%;background:var(--bar);border-radius:5px}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:18px}
+
+/* ---------- design layer (taste-skill pass): matches the notes app ---------- */
+body{font-feature-settings:"ss01";letter-spacing:-.003em;min-height:100dvh}
+::selection{background:var(--yellow-soft);color:var(--ink)}
+h1{font-weight:700;letter-spacing:-.035em}
+h2{font-weight:650;letter-spacing:-.022em}
+header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 86%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:var(--ink);border-bottom:1px solid var(--line)}
+header b{font-weight:700;letter-spacing:-.03em}
+header small{color:var(--muted);text-transform:none;letter-spacing:0;font-size:.8rem;font-weight:500}
+.back{color:var(--muted);text-decoration:none;font-size:.85rem;font-weight:500;transition:color 180ms ease}
+.back:hover{color:var(--ink)}
+.card{border-radius:18px;padding:20px 20px 22px}
+.login{box-shadow:var(--shadow)}
+.tile{border-radius:12px}
+.tile span,th{text-transform:none;letter-spacing:0;font-weight:600;font-size:.82rem}
+.tile b,td.n{font-family:var(--mono);letter-spacing:-.02em}
+.tile b{font-weight:600}
+.btn{background:var(--sel);color:var(--on-sel);font-weight:600;transition:background-color 180ms ease,transform 120ms ease,border-color 180ms ease;box-shadow:inset 0 1px 0 hsl(0 0% 100% / .12),0 1px 2px hsl(24 30% 20% / .14)}
+.btn:hover{background:color-mix(in srgb,var(--sel) 86%,var(--ink))}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.ghost:hover{background:var(--bg2);border-color:var(--edge)}
+.btn:focus-visible,input:focus-visible,select:focus-visible,.cols .c:focus-visible{outline:2px solid var(--sel);outline-offset:2px}
+input,select{border-width:1px;border-radius:10px;font-weight:500;transition:border-color 180ms ease}
+input:hover,select:hover{border-color:var(--edge)}
+.tip{background:var(--ink);color:var(--bg);font-family:var(--mono);font-weight:500;font-size:.8rem;box-shadow:var(--shadow)}
+.cols .c i{transition:background-color 180ms ease}
 </style>
 </head>
 <body>
-<header><div><small>Kraftshala · MLP</small><b>Programmatic Notes · Analytics</b></div>
+<header><div><a class="back" href="./">← Back to notes</a><small>Kraftshala · MLP</small><b>Programmatic Notes · Analytics</b></div>
   <div class="row" id="ctrl" hidden><select id="days" aria-label="Date range"><option value="1">Today</option><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option></select><button class="btn" id="refresh">Refresh</button><button class="btn ghost" id="csv">Students CSV</button><button class="btn ghost" id="logout">Lock</button></div></header>
 <main>
   <form class="card login" id="login">
