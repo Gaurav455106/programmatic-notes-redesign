@@ -1,5 +1,5 @@
 // Recurring love note: types the question out, floats hearts, fades, and comes back.
-// The × hides it for the rest of the visit.
+// It grows a little every time it comes back. The × hides it until the page is reloaded.
 (function () {
   "use strict";
 
@@ -11,15 +11,9 @@
   var HEART_COUNT = 12;
   var HOP_MS = 1100;           // how often it jumps to a new spot while showing
   var EDGE_PX = 16;
-  var DISMISS_KEY = "love-note-dismissed";
+  var GROW_STEP = 0.3;         // each appearance is 30% bigger than the first
+  var GROW_MAX = 3.5;
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  function isDismissed() {
-    try { return sessionStorage.getItem(DISMISS_KEY) === "1"; } catch (e) { return false; }
-  }
-  function rememberDismissed() {
-    try { sessionStorage.setItem(DISMISS_KEY, "1"); } catch (e) { /* private mode: hide for this page only */ }
-  }
 
   function el(tag, className, text) {
     var node = document.createElement(tag);
@@ -82,8 +76,10 @@
   }
 
   function start() {
-    if (isDismissed()) return;
+    // Clear the old "hidden for this visit" flag from the previous version.
+    try { sessionStorage.removeItem("love-note-dismissed"); } catch (e) { /* storage blocked: nothing to clear */ }
     var ui = buildNote();
+    var appearances = 0;
     var nextTimer = null;
     var stopped = false;
 
@@ -96,6 +92,9 @@
 
     function cycle() {
       if (stopped) return;
+      var grow = Math.min(1 + appearances * GROW_STEP, GROW_MAX);
+      appearances += 1;
+      ui.note.style.setProperty("--grow", grow);
       ui.text.textContent = MESSAGE;   // measure at full size so the jump keeps it on screen
       jump(ui.note);
       ui.text.textContent = "";
@@ -118,7 +117,6 @@
       clearTimeout(nextTimer);
       clearInterval(hopTimer);
       ui.note.classList.remove("is-on");
-      rememberDismissed();
     });
 
     nextTimer = setTimeout(cycle, FIRST_DELAY_MS);
