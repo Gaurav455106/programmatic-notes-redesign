@@ -4,7 +4,21 @@
 (function () {
   "use strict";
 
-  var MESSAGE = "Which type of boyfriend do you want?";
+  // Shuffled with no repeats until every message has been shown once.
+  var MESSAGES = [
+    "Which type of boyfriend do you want? Spoiler: you already have him.",
+    "Did you know you are my favourite part of every single day?",
+    "Who is the most beautiful girl in this class? You. Obviously.",
+    "Can I fall in love with you all over again tomorrow?",
+    "Guess who cannot stop smiling because of you?",
+    "What did I ever do to deserve you, my love?",
+    "Will you let me love you a little more today?",
+    "Do you know how lucky your boyfriend feels right now?",
+    "Still falling for you every day. Is that allowed?",
+    "Coffee date after class, my love?",
+    "Want to know a secret? I would choose you every single time.",
+    "Which boyfriend loves you the most? This one, forever."
+  ];
   var FIRST_DELAY_MS = 2500;
   var TYPE_MS = 70;
   var HOLD_MS = 5000;
@@ -13,7 +27,7 @@
   var HOP_MS = 1100;           // how often it jumps to a new spot while showing
   var EDGE_PX = 16;
   var GROW_STEP = 0.3;         // each appearance is 30% bigger than the first
-  var GROW_MAX = 3.5;
+  var GROW_MAX = 2.8;
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function el(tag, className, text) {
@@ -25,7 +39,6 @@
 
   function buildNote() {
     var note = el("div", "love");
-    note.setAttribute("aria-label", MESSAGE);
     var beat = el("span", "love-beat", "♥");
     beat.setAttribute("aria-hidden", "true");
     var text = el("span", "love-text");
@@ -66,16 +79,25 @@
   }
 
   // Types the message; returns a function that cancels the typing.
-  function typeOut(target, done) {
-    if (reduceMotion) { target.textContent = MESSAGE; done(); return function () {}; }
+  function typeOut(target, message, done) {
+    if (reduceMotion) { target.textContent = message; done(); return function () {}; }
     var i = 0;
     target.textContent = "";
     var timer = setInterval(function () {
       i += 1;
-      target.textContent = MESSAGE.slice(0, i);
-      if (i >= MESSAGE.length) { clearInterval(timer); done(); }
+      target.textContent = message.slice(0, i);
+      if (i >= message.length) { clearInterval(timer); done(); }
     }, TYPE_MS);
     return function () { clearInterval(timer); };
+  }
+
+  function shuffled(list) {
+    var copy = list.slice();
+    for (var i = copy.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = copy[i]; copy[i] = copy[j]; copy[j] = tmp;
+    }
+    return copy;
   }
 
   function start() {
@@ -83,6 +105,12 @@
     try { sessionStorage.removeItem("love-note-dismissed"); } catch (e) { /* storage blocked: nothing to clear */ }
     var ui = buildNote();
     var appearances = 0;
+    var bag = [];
+
+    function nextMessage() {
+      if (!bag.length) bag = shuffled(MESSAGES);
+      return bag.pop();
+    }
     var run = 0;               // id of the current appearance; stale timers check it and stop
     var timers = [];
     var cancelTyping = function () {};
@@ -116,13 +144,15 @@
       var grow = Math.min(1 + appearances * GROW_STEP, GROW_MAX);
       appearances += 1;
       ui.note.style.setProperty("--grow", grow);
-      ui.text.textContent = MESSAGE;   // measure at full size so the jump keeps it on screen
+      var message = nextMessage();
+      ui.note.setAttribute("aria-label", message);
+      ui.text.textContent = message;   // measure at full size so the jump keeps it on screen
       jump(ui.note);
       ui.text.textContent = "";
       ui.note.classList.remove("is-done");
       ui.note.classList.add("is-on");
       if (!reduceMotion) floatHearts(ui.note);
-      cancelTyping = typeOut(ui.text, function () {
+      cancelTyping = typeOut(ui.text, message, function () {
         if (id !== run) return;
         ui.note.classList.add("is-done");
         if (!reduceMotion) later(function () { hopLoop(id); }, HOP_MS, id);

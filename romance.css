@@ -27,7 +27,7 @@
 }
 .love.is-on { opacity: 1; transform: translate(var(--x, 16px), var(--y, 16px)) scale(1); pointer-events: auto; }
 .love-beat { color: var(--love-heart); font-size: calc(1.5rem * var(--grow, 1)); line-height: 1; animation: love-beat 1.2s ease-in-out infinite; }
-.love-text { font: 700 calc(clamp(1.35rem, 1.1rem + 1.2vw, 1.9rem) * var(--grow, 1))/1.15 "Dancing Script", cursive; min-height: 1.15em; }
+.love-text { font: 700 calc(clamp(1.35rem, 1.1rem + 1.2vw, 1.9rem) * var(--grow, 1))/1.15 "Dancing Script", cursive; min-height: 1.15em; text-wrap: balance; }
 .love-text::after { content: ""; display: inline-block; width: 2px; height: .9em; margin-left: 3px; vertical-align: -.1em; background: currentColor; animation: love-caret .9s steps(1) infinite; }
 .love.is-done .love-text::after { opacity: 0; animation: none; }
 .love-close {
