@@ -1,41 +1,35 @@
-// Auto-update: when a new version is pushed to GitHub Pages, every open copy of the
-// site reloads itself. Checks once a minute (and when the tab is reopened), only while
-// the tab is visible. GitHub Pages caches files for up to ~10 minutes, so a push can
-// take that long to reach visitors.
+// Auto-update: when a new version is published on GitHub Pages, every open copy of the
+// site reloads itself.
+// How: GitHub stamps every deploy with a new Last-Modified date. We read the date of the
+// copy this page was loaded from (the browser's cached response), then ask the server for
+// its current date every 30 seconds. Different date = new deploy = reload.
+// GitHub's CDN caches pages for up to 10 minutes, so a deploy can take that long to arrive.
 (function () {
   "use strict";
 
-  var CHECK_EVERY_MS = 60 * 1000;
-  var WATCHED_FILES = [location.pathname, "config.js", "auto-update.js", "romance.js", "romance.css"];
-  var baseline = null;
+  var CHECK_EVERY_MS = 30 * 1000;
+  var PAGE_URL = location.pathname;
+  var loadedVersion = null;
 
-  function fingerprint(text) {
-    var hash = 0;
-    for (var i = 0; i < text.length; i++) hash = (hash * 31 + text.charCodeAt(i)) | 0;
-    return hash;
+  function versionOf(res) {
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return res.headers.get("last-modified") || res.headers.get("etag");
   }
 
-  function fetchText(path) {
-    var url = path + (path.indexOf("?") === -1 ? "?" : "&") + "v=" + Date.now();
-    return fetch(url, { cache: "no-store" }).then(function (res) {
-      // A missing optional file (e.g. after rolling back the animation) is not a change.
-      if (res.status === 404) return "";
-      if (!res.ok) throw new Error("HTTP " + res.status + " for " + path);
-      return res.text();
-    });
+  // The copy this page came from: the browser cache answers without going to the network.
+  function readLoadedVersion() {
+    return fetch(PAGE_URL, { cache: "force-cache" }).then(versionOf);
   }
 
-  function currentFingerprint() {
-    return Promise.all(WATCHED_FILES.map(fetchText)).then(function (texts) {
-      return fingerprint(texts.join("\n--\n"));
-    });
+  function readLiveVersion() {
+    return fetch(PAGE_URL, { method: "HEAD", cache: "no-store" }).then(versionOf);
   }
 
   function check() {
-    if (document.hidden) return;
-    currentFingerprint().then(function (fp) {
-      if (baseline === null) { baseline = fp; return; }
-      if (fp !== baseline) location.reload();
+    readLiveVersion().then(function (live) {
+      if (!live) return;
+      if (loadedVersion === null) { loadedVersion = live; return; }
+      if (live !== loadedVersion) location.reload();
     }).catch(function (err) {
       // Offline or a GitHub hiccup: keep the page as it is and try again next round.
       console.warn("[auto-update] check skipped:", err.message);
@@ -43,7 +37,12 @@
   }
 
   if (location.protocol === "file:") return; // fetch cannot read local files
-  check();
-  setInterval(check, CHECK_EVERY_MS);
-  document.addEventListener("visibilitychange", check);
+  readLoadedVersion()
+    .then(function (v) { loadedVersion = v || null; })
+    .catch(function () { loadedVersion = null; })
+    .then(function () {
+      check();
+      setInterval(check, CHECK_EVERY_MS);
+      document.addEventListener("visibilitychange", function () { if (!document.hidden) check(); });
+    });
 })();
