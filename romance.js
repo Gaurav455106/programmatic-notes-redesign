@@ -7,7 +7,7 @@
   var FIRST_DELAY_MS = 2500;
   var TYPE_MS = 70;
   var HOLD_MS = 5000;
-  var GAP_MS = 20000;
+  var GAP_MS = 5000;
   var HEART_COUNT = 12;
   var DISMISS_KEY = "love-note-dismissed";
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
