@@ -15,16 +15,17 @@
 :root[data-theme="dark"] { --love-bg: hsl(345 30% 14%); --love-line: hsl(345 35% 30%); --love-ink: hsl(345 85% 85%); --love-heart: hsl(348 85% 66%); }
 
 .love {
-  position: fixed; left: 50%; bottom: 24px; z-index: 60;
+  position: fixed; left: 0; top: 0; z-index: 60;
   width: max-content; max-width: calc(100vw - 32px);
   display: flex; align-items: center; gap: 12px;
   padding: 14px 18px 14px 22px; border-radius: 999px;
   background: var(--love-bg); border: 1.5px solid var(--love-line); color: var(--love-ink);
   box-shadow: var(--love-shadow);
-  opacity: 0; transform: translate(-50%, 24px) scale(.92); pointer-events: none;
-  transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .9s cubic-bezier(.2,.8,.2,1);
+  opacity: 0; pointer-events: none;
+  transform: translate(var(--x, 16px), var(--y, 16px)) scale(.6);
+  transition: opacity .5s cubic-bezier(.2,.8,.2,1), transform .65s cubic-bezier(.34,1.56,.64,1);
 }
-.love.is-on { opacity: 1; transform: translate(-50%, 0) scale(1); pointer-events: auto; }
+.love.is-on { opacity: 1; transform: translate(var(--x, 16px), var(--y, 16px)) scale(1); pointer-events: auto; }
 .love-beat { color: var(--love-heart); font-size: 1.5rem; line-height: 1; animation: love-beat 1.2s ease-in-out infinite; }
 .love-text { font: 700 clamp(1.35rem, 1.1rem + 1.2vw, 1.9rem)/1.15 "Dancing Script", cursive; min-height: 1.15em; }
 .love-text::after { content: ""; display: inline-block; width: 2px; height: .9em; margin-left: 3px; vertical-align: -.1em; background: currentColor; animation: love-caret .9s steps(1) infinite; }
@@ -49,10 +50,10 @@
 }
 
 @media (max-width: 520px) {
-  .love { bottom: 16px; padding: 12px 10px 12px 16px; gap: 8px; border-radius: 22px; }
+  .love { padding: 12px 10px 12px 16px; gap: 8px; border-radius: 22px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .love { transition: opacity .4s linear; transform: translate(-50%, 0); }
+  .love { transition: opacity .4s linear; }
   .love-beat, .love-text::after { animation: none; }
   .love-heart { display: none; }
 }

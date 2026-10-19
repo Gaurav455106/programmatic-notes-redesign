@@ -9,6 +9,8 @@
   var HOLD_MS = 5000;
   var GAP_MS = 5000;
   var HEART_COUNT = 12;
+  var HOP_MS = 1100;           // how often it jumps to a new spot while showing
+  var EDGE_PX = 16;
   var DISMISS_KEY = "love-note-dismissed";
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -41,6 +43,14 @@
     note.appendChild(close);
     document.body.appendChild(note);
     return { note: note, text: text, close: close };
+  }
+
+  // Pick a random spot that keeps the whole note on screen.
+  function jump(note) {
+    var maxX = Math.max(EDGE_PX, window.innerWidth - note.offsetWidth - EDGE_PX);
+    var maxY = Math.max(EDGE_PX, window.innerHeight - note.offsetHeight - EDGE_PX);
+    note.style.setProperty("--x", Math.round(EDGE_PX + Math.random() * (maxX - EDGE_PX)) + "px");
+    note.style.setProperty("--y", Math.round(EDGE_PX + Math.random() * (maxY - EDGE_PX)) + "px");
   }
 
   function floatHearts(anchor) {
@@ -77,14 +87,26 @@
     var nextTimer = null;
     var stopped = false;
 
+    var hopTimer = null;
+
+    function hop() {
+      jump(ui.note);
+      if (!reduceMotion) setTimeout(function () { floatHearts(ui.note); }, 350);
+    }
+
     function cycle() {
       if (stopped) return;
+      ui.text.textContent = MESSAGE;   // measure at full size so the jump keeps it on screen
+      jump(ui.note);
+      ui.text.textContent = "";
       ui.note.classList.remove("is-done");
       ui.note.classList.add("is-on");
       if (!reduceMotion) floatHearts(ui.note);
       typeOut(ui.text, function () {
         ui.note.classList.add("is-done");
+        if (!reduceMotion) hopTimer = setInterval(hop, HOP_MS);
         nextTimer = setTimeout(function () {
+          clearInterval(hopTimer);
           ui.note.classList.remove("is-on");
           nextTimer = setTimeout(cycle, GAP_MS);
         }, HOLD_MS);
@@ -94,6 +116,7 @@
     ui.close.addEventListener("click", function () {
       stopped = true;
       clearTimeout(nextTimer);
+      clearInterval(hopTimer);
       ui.note.classList.remove("is-on");
       rememberDismissed();
     });
