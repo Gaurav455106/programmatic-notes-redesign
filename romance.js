@@ -1,5 +1,6 @@
 // Recurring love note: types the question out, floats hearts, fades, and comes back.
-// It grows a little every time it comes back. The × hides it until the page is reloaded.
+// It grows a little every time it comes back. The × only hides the current appearance;
+// the note always comes back after the usual gap.
 (function () {
   "use strict";
 
@@ -64,8 +65,9 @@
     }
   }
 
+  // Types the message; returns a function that cancels the typing.
   function typeOut(target, done) {
-    if (reduceMotion) { target.textContent = MESSAGE; done(); return; }
+    if (reduceMotion) { target.textContent = MESSAGE; done(); return function () {}; }
     var i = 0;
     target.textContent = "";
     var timer = setInterval(function () {
@@ -73,25 +75,44 @@
       target.textContent = MESSAGE.slice(0, i);
       if (i >= MESSAGE.length) { clearInterval(timer); done(); }
     }, TYPE_MS);
+    return function () { clearInterval(timer); };
   }
 
   function start() {
-    // Clear the old "hidden for this visit" flag from the previous version.
+    // Clear the old "hidden for this visit" flag from an earlier version.
     try { sessionStorage.removeItem("love-note-dismissed"); } catch (e) { /* storage blocked: nothing to clear */ }
     var ui = buildNote();
     var appearances = 0;
-    var nextTimer = null;
-    var stopped = false;
+    var run = 0;               // id of the current appearance; stale timers check it and stop
+    var timers = [];
+    var cancelTyping = function () {};
 
-    var hopTimer = null;
-
-    function hop() {
-      jump(ui.note);
-      if (!reduceMotion) setTimeout(function () { floatHearts(ui.note); }, 350);
+    function later(fn, ms, id) {
+      timers.push(setTimeout(function () { if (id === run) fn(); }, ms));
     }
 
-    function cycle() {
-      if (stopped) return;
+    function clearAll() {
+      cancelTyping();
+      timers.forEach(clearTimeout);
+      timers = [];
+    }
+
+    function hopLoop(id) {
+      jump(ui.note);
+      if (!reduceMotion) later(function () { floatHearts(ui.note); }, 350, id);
+      later(function () { hopLoop(id); }, HOP_MS, id);
+    }
+
+    function hide(id) {
+      clearAll();
+      ui.note.classList.remove("is-on");
+      later(show, GAP_MS, id);
+    }
+
+    function show() {
+      clearAll();
+      run += 1;
+      var id = run;
       var grow = Math.min(1 + appearances * GROW_STEP, GROW_MAX);
       appearances += 1;
       ui.note.style.setProperty("--grow", grow);
@@ -101,25 +122,18 @@
       ui.note.classList.remove("is-done");
       ui.note.classList.add("is-on");
       if (!reduceMotion) floatHearts(ui.note);
-      typeOut(ui.text, function () {
+      cancelTyping = typeOut(ui.text, function () {
+        if (id !== run) return;
         ui.note.classList.add("is-done");
-        if (!reduceMotion) hopTimer = setInterval(hop, HOP_MS);
-        nextTimer = setTimeout(function () {
-          clearInterval(hopTimer);
-          ui.note.classList.remove("is-on");
-          nextTimer = setTimeout(cycle, GAP_MS);
-        }, HOLD_MS);
+        if (!reduceMotion) later(function () { hopLoop(id); }, HOP_MS, id);
+        later(function () { hide(id); }, HOLD_MS, id);
       });
     }
 
-    ui.close.addEventListener("click", function () {
-      stopped = true;
-      clearTimeout(nextTimer);
-      clearInterval(hopTimer);
-      ui.note.classList.remove("is-on");
-    });
+    // × hides this appearance only; it comes back after the usual gap.
+    ui.close.addEventListener("click", function () { hide(run); });
 
-    nextTimer = setTimeout(cycle, FIRST_DELAY_MS);
+    later(show, FIRST_DELAY_MS, run);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
