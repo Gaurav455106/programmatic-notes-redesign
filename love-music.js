@@ -6,14 +6,17 @@
 //   3. Songs she adds with "⬆ Upload song": saved in her browser (IndexedDB) on her device only,
 //      never uploaded, and still there after reloads.
 // It tries to start as soon as the page loads. Most browsers block sound until the visitor interacts,
-// so if that is refused it starts on her first tap, click or key press instead. A pause is remembered.
+// so if that is refused it starts on her first tap, click or key press instead. A pause is remembered,
+// and the song and position are saved so an auto-reload carries on where it left off.
 (function () {
   "use strict";
 
   var PAUSED_KEY = "pn-music-paused";
   var DB_NAME = "pn-music";
   var STORE = "songs";
-  var START_EVENTS = ["pointerdown", "keydown", "touchstart"];
+  var RESUME_KEY = "pn-music-resume";
+  var RESUME_SAVE_MS = 3000;
+  var START_EVENTS = ["pointerdown", "mousedown", "touchend", "click", "keydown"];
   var VOLUME = 0.6;
   var MUSIC_FOLDER_API = "https://api.github.com/repos/Gaurav455106/programmatic-notes-redesign/contents/music";
   var AUDIO_FILE = /\.(mp3|m4a|aac|wav|ogg)$/i;
@@ -47,6 +50,14 @@
   }
   function savePaused(paused) {
     try { localStorage.setItem(PAUSED_KEY, paused ? "1" : "0"); } catch (e) { /* storage blocked: this page only */ }
+  }
+
+  function readResume() {
+    try { return JSON.parse(localStorage.getItem(RESUME_KEY) || "null"); } catch (e) { return null; }
+  }
+  function saveResume() {
+    if (!queue.length || !audio.currentSrc) return;
+    try { localStorage.setItem(RESUME_KEY, JSON.stringify({ track: queue[index], time: audio.currentTime })); } catch (e) { /* storage blocked: start from the top next time */ }
   }
 
   // ---- songs saved on this device ----
@@ -147,10 +158,22 @@
     if (attempt && attempt.then) attempt.then(stopWaiting).catch(function () { /* blocked until she interacts */ });
   }
 
+  // Starts from the song and second saved before the last reload, if that song is still in the queue.
+  function loadResumed() {
+    var resume = readResume();
+    var at = resume ? queue.indexOf(resume.track) : -1;
+    load(at > -1 ? at : 0);
+    if (at < 0 || !(resume.time > 0)) return;
+    audio.addEventListener("loadedmetadata", function seek() {
+      audio.removeEventListener("loadedmetadata", seek);
+      if (resume.time < audio.duration) audio.currentTime = resume.time;
+    });
+  }
+
   function rebuildQueue() {
     var wasEmpty = !queue.length;
     queue = folderSongs.concat(configured, savedSongs.map(function (song) { return song.url; }));
-    if (wasEmpty && queue.length) load(0);
+    if (wasEmpty && queue.length) loadResumed();
     render();
     if (wasEmpty && queue.length) tryAutoplay();
   }
@@ -190,6 +213,8 @@
     });
   });
 
+  setInterval(function () { if (!audio.paused) saveResume(); }, RESUME_SAVE_MS);
+  window.addEventListener("pagehide", saveResume);
   START_EVENTS.forEach(function (name) { document.addEventListener(name, startOnFirstInteraction, true); });
   // Each source joins the queue as soon as it answers; the first one with songs starts the music.
   rebuildQueue();
