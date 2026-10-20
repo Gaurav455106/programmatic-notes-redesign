@@ -7,26 +7,13 @@
   var FIRST_DELAY_MS = 90 * 1000;
   var MIN_GAP_MS = 5 * 60 * 1000;
   var MAX_GAP_MS = 9 * 60 * 1000;
-  var SHOW_MS = 7000;
+  var SHOW_MS = 10000;
   var FADE_MS = 800;
   var FONT_URL = "https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap";
   var MODES = ["fireworks", "rain", "beat"];
   var PINKS = ["#ff4d7d", "#ff7aa2", "#ffb3c8", "#ff2e63", "#ffd1dc", "#ff8fab"];
 
-  var SUBS = [
-    "Go ace it tomorrow, my love",
-    "You've got this, and you've got me",
-    "Forever yours, exam or no exam",
-    "So proud of you, every single day",
-    "My strong, beautiful, brilliant girl",
-    "Take a breath. I'm right here."
-  ];
-  var AFTER_SUBS = [
-    "You did it. I'm so proud of you",
-    "Now rest, my love. You earned it",
-    "Forever yours"
-  ];
-  var EXAM_AT = new Date(2026, 9, 21, 8, 0, 0);
+  var LOVE = window.PN_LOVE || { names: ["My Love"], messages: ["I love you ❤️"] };
 
   var showing = false;
 
@@ -106,7 +93,6 @@
     if (showing || document.hidden) return;
     showing = true;
     loadFont();
-    var afterExam = Date.now() >= EXAM_AT.getTime();
     var overlay = document.createElement("div");
     overlay.className = "lb-overlay";
     overlay.setAttribute("role", "dialog");
@@ -115,9 +101,11 @@
       return '<span style="animation-delay:' + (0.15 + i * 0.09) + 's">' + (ch === " " ? "&nbsp;" : ch) + "</span>";
     }).join("");
     overlay.innerHTML = '<canvas class="lb-canvas" aria-hidden="true"></canvas>' +
-      '<div class="lb-text"><p class="lb-big">' + letters + '</p><p class="lb-sub"></p></div>' +
+      '<div class="lb-text"><p class="lb-big">' + letters + '</p><p class="lb-name"></p><p class="lb-sub"></p></div>' +
       '<p class="lb-hint">tap anywhere to keep studying</p>';
-    overlay.querySelector(".lb-sub").textContent = pick(afterExam ? AFTER_SUBS : SUBS);
+    var message = pick(LOVE.messages);
+    overlay.querySelector(".lb-name").textContent = LOVE.nameIn ? LOVE.nameIn(message) : "My Love";
+    overlay.querySelector(".lb-sub").textContent = message;
     document.body.appendChild(overlay);
 
     var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;

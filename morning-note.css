@@ -1,11 +1,11 @@
 /* Morning note: a small corner card with rotating sweet messages. */
 .mn-card{position:fixed;z-index:60;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
-  width:min(320px,calc(100vw - 32px));padding:16px 40px 14px 18px;border-radius:14px;
+  width:min(360px,calc(100vw - 32px));padding:16px 40px 14px 18px;border-radius:14px;
   background:var(--yellow-soft);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow);
   font-family:var(--body);animation:mn-in .7s var(--ease) both,mn-bob 5s ease-in-out .7s infinite}
 .mn-card[hidden]{display:none!important}
 .mn-hi{font:600 .72rem/1.35 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--yellow-ink);margin:0 0 6px}
-.mn-msg{margin:0;font-size:.98rem;line-height:1.45;text-wrap:pretty;transition:opacity .45s ease,transform .45s ease}
+.mn-msg{margin:0;white-space:pre-line;font-size:.98rem;line-height:1.45;text-wrap:pretty;transition:opacity .45s ease,transform .45s ease}
 .mn-msg.mn-swap{opacity:0;transform:translateY(6px)}
 .mn-sign{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-top:8px;font-size:.8rem;color:var(--muted)}
 .mn-x{position:absolute;top:6px;right:6px;width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:18px;cursor:pointer}

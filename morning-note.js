@@ -11,47 +11,18 @@
   var EFFECTS = ["mn-a-bounce", "mn-a-flip", "mn-a-beat", "mn-a-slide", "mn-a-jello", "mn-a-hearts"];
   var BURST_COUNT = 8;
 
-  // Exam: 21 Oct 2026, 8:00 AM on her device's clock. Messages switch once it starts.
+  // Exam: 21 Oct 2026, 8:00 AM on her device's clock. The countdown disappears once it starts.
   var EXAM_AT = new Date(2026, 9, 21, 8, 0, 0);
   var HOUR_MS = 60 * 60 * 1000;
 
-  var STUDY_MESSAGES = [
-    "My love, every module you finish tonight is one step closer to acing that 8 AM exam. I'm so proud of you.",
-    "You are the most beautiful thing on this screen, and DV360 doesn't even come close.",
-    "Open auction, PMP, PG... none of them win as many bids as you win in my heart.",
-    "If you were a line item, my frequency cap for thinking about you would be unlimited.",
-    "Take a deep breath, jaan. You know this. You've worked so hard, and I've watched every bit of it.",
-    "Brand safe, viewable, and 100% my favourite person. That's you.",
-    "Drink some water, stretch for a minute, and come back. I'm right here with you.",
-    "You're stronger than any exam. Tomorrow at 8, go show them what my girl can do.",
-    "Every time you get tired, remember someone out here is completely, hopelessly in love with you.",
-    "Your brain is brilliant, your heart is gold, and your smile is my whole world.",
-    "Real-time bidding takes 100 milliseconds. Falling for you took even less.",
-    "You don't need luck tomorrow. You have your hard work and all my love.",
-    "One more module, my love. Then one more. You're doing amazing, and I adore you.",
-    "If studying gets heavy, close your eyes for a second and imagine my hug. It's yours.",
-    "Floodlight tracks conversions. I just track how many times you make me smile. I lost count.",
-    "The strongest, smartest, most beautiful girl I know is studying right now. Lucky exam.",
-    "However tonight goes, I'm proud of you. Always. Now go win this.",
-    "Don't stay up too late, okay? A rested you is unstoppable at 8 AM. I want you sharp and smiling.",
-    "Your effort is the most attractive thing in the world. Keep going, my love.",
-    "I believe in you more than you believe in pacing reports. And that's a lot."
-  ];
-
-  var AFTER_MESSAGES = [
-    "You did it, my love. Whatever the result, I'm so incredibly proud of you.",
-    "Exam done. Now rest, smile, and let me spoil you.",
-    "You were brave and strong through all of it. I love you so much.",
-    "The hard part is over. You're amazing, and you're mine to celebrate.",
-    "However it went, you gave it everything. That's my girl."
-  ];
+  var LOVE = window.PN_LOVE || { names: ["My Love"], messages: ["I love you ❤️"] };
 
   function hoursToExam() {
     return Math.ceil((EXAM_AT.getTime() - Date.now()) / HOUR_MS);
   }
 
   function currentMessages() {
-    return hoursToExam() > 0 ? STUDY_MESSAGES : AFTER_MESSAGES;
+    return LOVE.messages;
   }
 
   function store(action, key, value) {
@@ -71,9 +42,10 @@
     return copy;
   }
 
-  function greeting() {
+  function greeting(message) {
     var h = new Date().getHours();
-    var hello = h < 5 ? "Still up, my love?" : h < 12 ? "Good morning, my love" : h < 17 ? "Hi, beautiful" : h < 21 ? "Good evening, jaan" : "My brave girl";
+    var name = LOVE.nameIn ? LOVE.nameIn(message) : "My Love";
+    var hello = (h < 5 ? "Still up, " : h < 12 ? "Good morning, " : h < 17 ? "Hi, " : h < 21 ? "Good evening, " : "Good night, ") + name;
     var left = hoursToExam();
     if (left <= 0) return hello;
     return hello + " · " + (left === 1 ? "1 hour" : left + " hours") + " to your exam";
@@ -126,7 +98,7 @@
     function show(text) {
       ui.msg.classList.add("mn-swap");
       setTimeout(function () {
-        ui.hi.textContent = greeting();
+        ui.hi.textContent = greeting(text);
         ui.msg.textContent = text;
         ui.msg.classList.remove("mn-swap");
         playEffect(ui.card);
@@ -139,7 +111,7 @@
       show(deck[index]);
     }
 
-    ui.hi.textContent = greeting();
+    ui.hi.textContent = greeting(deck[0]);
     ui.msg.textContent = deck[0];
     ui.x.addEventListener("click", function () { ui.card.hidden = true; ui.pill.hidden = false; });
     ui.pill.addEventListener("click", function () { ui.pill.hidden = true; ui.card.hidden = false; next(); });
