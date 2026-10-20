@@ -1,9 +1,13 @@
-/* Love music: a small round pause / play button in the bottom-left corner. */
-.lm-toggle{position:fixed;z-index:60;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
-  width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--yellow-soft);color:var(--ink);
-  box-shadow:var(--shadow);cursor:pointer;display:grid;place-items:center;font:600 14px/1 var(--body)}
-.lm-toggle:hover{border-color:var(--edge)}
-.lm-toggle:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+/* Love music: a round pause / play button and an "add songs" button in the bottom-left corner. */
+.lm-bar{position:fixed;z-index:60;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  display:flex;align-items:center;gap:8px}
+.lm-toggle,.lm-add{border:1px solid var(--line);background:var(--yellow-soft);color:var(--ink);box-shadow:var(--shadow);cursor:pointer;font:600 14px/1 var(--body)}
+.lm-toggle:hover,.lm-add:hover{border-color:var(--edge)}
+.lm-toggle:focus-visible,.lm-add:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+.lm-toggle{width:48px;height:48px;border-radius:50%;display:grid;place-items:center}
+.lm-toggle[hidden]{display:none!important}
+.lm-add{height:40px;padding:0 14px;border-radius:99px}
+.lm-add.lm-add-small{width:32px;height:32px;padding:0;border-radius:50%;font-size:18px;opacity:.75}
 .lm-icon{grid-area:1/1}
 .lm-bars{grid-area:1/1;display:flex;gap:3px;align-items:flex-end;height:18px;opacity:0;transition:opacity .2s ease}
 .lm-bars i{width:3px;background:hsl(346 80% 62%);border-radius:2px;animation:lm-bar .9s ease-in-out infinite}
