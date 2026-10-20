@@ -1,7 +1,7 @@
 // Love music: background songs with a small round pause / play button.
 // Songs come from two places:
 //   1. PN_LOVE.tracks in love-messages.js: audio files in the music/ folder that may be published.
-//   2. Songs she adds with "+ Add our songs": saved in her browser (IndexedDB) on her device only,
+//   2. Songs she adds with "⬆ Upload song": saved in her browser (IndexedDB) on her device only,
 //      never uploaded, and still there after reloads.
 // It tries to start as soon as the page loads. Most browsers block sound until the visitor interacts,
 // so if that is refused it starts on her first tap, click or key press instead. A pause is remembered.
@@ -69,7 +69,7 @@
   var bar = document.createElement("div");
   bar.className = "lm-bar";
   bar.innerHTML = '<button type="button" class="lm-toggle" hidden></button>' +
-    '<button type="button" class="lm-add">+ Add our songs</button>' +
+    '<button type="button" class="lm-add">⬆ Upload song</button>' +
     '<input type="file" id="lm-file" accept="audio/*" multiple hidden>';
   document.body.appendChild(bar);
   var toggle = bar.querySelector(".lm-toggle");
@@ -79,8 +79,8 @@
   function render() {
     var playing = !audio.paused;
     toggle.hidden = !queue.length;
-    addBtn.textContent = queue.length ? "+" : "+ Add our songs";
-    addBtn.setAttribute("aria-label", "Add more songs");
+    addBtn.textContent = queue.length ? "+" : "⬆ Upload song";
+    addBtn.setAttribute("aria-label", "Upload more songs");
     addBtn.classList.toggle("lm-add-small", queue.length > 0);
     toggle.classList.toggle("lm-playing", playing);
     toggle.setAttribute("aria-label", playing ? "Pause our song" : "Play our song");
