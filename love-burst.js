@@ -1,4 +1,4 @@
-// Love burst: every 30 seconds, a full-screen love moment over the notes.
+// Love burst: every 2 minutes, a full-screen love moment over the notes.
 // Each time it picks a random background (7 canvas effects), a random title entrance (5 styles),
 // a title and a message from their own shuffled decks, so nothing repeats until every one has shown.
 // It closes by itself after a few seconds; a tap, click or Esc closes it sooner.
@@ -6,7 +6,7 @@
   "use strict";
 
   var FIRST_DELAY_MS = 30 * 1000;
-  var GAP_MS = 30 * 1000;
+  var GAP_MS = 2 * 60 * 1000;
   var SHOW_MS = 10000;
   var FADE_MS = 800;
   var FONT_URL = "https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap";
