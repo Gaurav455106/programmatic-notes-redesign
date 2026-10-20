@@ -1,0 +1,23 @@
+/* Morning note: a small corner card with rotating sweet messages. */
+.mn-card{position:fixed;z-index:60;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  width:min(320px,calc(100vw - 32px));padding:16px 40px 14px 18px;border-radius:14px;
+  background:var(--yellow-soft);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow);
+  font-family:var(--body);animation:mn-in .7s var(--ease) both,mn-bob 5s ease-in-out .7s infinite}
+.mn-card[hidden]{display:none!important}
+.mn-hi{font:600 .72rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--yellow-ink);margin:0 0 6px}
+.mn-msg{margin:0;font-size:.98rem;line-height:1.45;text-wrap:pretty;transition:opacity .45s ease,transform .45s ease}
+.mn-msg.mn-swap{opacity:0;transform:translateY(6px)}
+.mn-sign{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-top:8px;font-size:.8rem;color:var(--muted)}
+.mn-x{position:absolute;top:6px;right:6px;width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:18px;cursor:pointer}
+.mn-x:hover{background:var(--bg2);color:var(--ink)}
+.mn-pill{position:fixed;z-index:60;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--yellow-soft);box-shadow:var(--shadow);cursor:pointer;display:grid;place-items:center}
+.mn-pill[hidden]{display:none!important}
+.mn-x:focus-visible,.mn-pill:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+.mn-heart{width:10px;height:10px;background:hsl(346 80% 62%);transform:rotate(45deg);position:relative;animation:mn-beat 1.3s ease-in-out infinite}
+.mn-heart::before,.mn-heart::after{content:"";position:absolute;width:10px;height:10px;border-radius:50%;background:inherit}
+.mn-heart::before{left:-5px}.mn-heart::after{top:-5px}
+@keyframes mn-in{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes mn-bob{50%{transform:translateY(-4px)}}
+@keyframes mn-beat{50%{transform:rotate(45deg) scale(1.25)}}
+@media (prefers-reduced-motion:reduce){.mn-card,.mn-heart{animation:none}.mn-msg{transition:none}}

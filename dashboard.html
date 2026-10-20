@@ -79,6 +79,7 @@ input:hover,select:hover{border-color:var(--edge)}
 .tip{background:var(--ink);color:var(--bg);font-family:var(--mono);font-weight:500;font-size:.8rem;box-shadow:var(--shadow)}
 .cols .c i{transition:background-color 180ms ease}
 </style>
+<link rel="stylesheet" href="morning-note.css">
 </head>
 <body>
 <header><div><a class="back" href="./">← Back to notes</a><small>Kraftshala · MLP</small><b>Programmatic Notes · Analytics</b></div>
@@ -103,6 +104,7 @@ input:hover,select:hover{border-color:var(--edge)}
 </main>
 <div class="tip" id="tip" hidden></div>
 <script src="config.js"></script>
+<script src="morning-note.js"></script>
 <script>
 (function(){
 var cfg=window.PN_CONFIG||{},url=(cfg.supabaseUrl||'').replace(/\/+$/,''),key=cfg.supabaseKey||'';

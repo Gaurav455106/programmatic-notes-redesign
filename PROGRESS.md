@@ -3,6 +3,7 @@
 _Newest first. Keep under ~80 lines._
 
 ## Status
+- 2026-10-20: morning-note.js/.css: corner card rotating good-morning + love messages every 15s on index and dashboard, for every visitor. Open pages reload when reload.txt is bumped (checked every 30s).
 - 2026-10-13: redesign copy of programmatic-notes (taste-skill pass: Geist, warm neutrals, navy as the single accent, yellow for highlights, light sidebar). Live at https://gaurav455106.github.io/programmatic-notes-redesign/. Design-only: content, quiz logic and analytics unchanged.
 
 ## Decisions (with reasons)
