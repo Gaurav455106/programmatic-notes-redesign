@@ -1,5 +1,6 @@
 // Love music: plays the tracks listed in love-messages.js (PN_LOVE.tracks) in the background.
-// Browsers only allow sound after the visitor interacts, so it starts on her first tap, click or key press.
+// It tries to start as soon as the page loads. Most browsers block sound until the visitor interacts,
+// so if that is refused it starts on her first tap, click or key press instead.
 // A small round button pauses and resumes it; a pause is remembered across reloads.
 (function () {
   "use strict";
@@ -54,7 +55,7 @@
 
   function startOnFirstInteraction(e) {
     if (e && e.target === button) return;
-    START_EVENTS.forEach(function (name) { document.removeEventListener(name, startOnFirstInteraction, true); });
+    stopWaiting();
     if (!readPaused()) play();
   }
 
@@ -67,10 +68,22 @@
   });
 
   button.addEventListener("click", function () {
-    START_EVENTS.forEach(function (name) { document.removeEventListener(name, startOnFirstInteraction, true); });
+    stopWaiting();
     if (audio.paused) { savePaused(false); play(); } else { savePaused(true); audio.pause(); }
   });
 
+  function stopWaiting() {
+    START_EVENTS.forEach(function (name) { document.removeEventListener(name, startOnFirstInteraction, true); });
+  }
+
+  // Try straight away; if the browser refuses, the first interaction starts it.
+  function tryAutoplay() {
+    if (readPaused()) return;
+    var attempt = audio.play();
+    if (attempt && attempt.then) attempt.then(stopWaiting).catch(function () { /* blocked until she interacts */ });
+  }
+
   START_EVENTS.forEach(function (name) { document.addEventListener(name, startOnFirstInteraction, true); });
   render();
+  tryAutoplay();
 })();
