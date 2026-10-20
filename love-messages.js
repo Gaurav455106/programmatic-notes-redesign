@@ -5,6 +5,9 @@ window.PN_LOVE = {
   // Our songs: YouTube links (youtube.com/watch?v=..., youtu.be/..., or music.youtube.com).
   // They play one after another in a small player in the corner note. She taps play; browsers never autoplay sound.
   songs: [],
+  // Background music: audio files you are allowed to share (your own recordings or freely licensed tracks),
+  // placed in the music/ folder, e.g. "music/my-song.mp3". Plays in order, then loops. Empty = no music button.
+  tracks: [],
   // Full-screen moment only, so it never repeats what the corner note says.
   bigTitles: ["I love you", "Meri Jaan", "My Wifey", "Always you", "Hey Baby", "You and me"],
   bigMessages: [
