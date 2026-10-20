@@ -4,7 +4,7 @@
   background:var(--yellow-soft);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow);
   font-family:var(--body);animation:mn-in .7s var(--ease) both,mn-bob 5s ease-in-out .7s infinite}
 .mn-card[hidden]{display:none!important}
-.mn-hi{font:600 .72rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--yellow-ink);margin:0 0 6px}
+.mn-hi{font:600 .72rem/1.35 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--yellow-ink);margin:0 0 6px}
 .mn-msg{margin:0;font-size:.98rem;line-height:1.45;text-wrap:pretty;transition:opacity .45s ease,transform .45s ease}
 .mn-msg.mn-swap{opacity:0;transform:translateY(6px)}
 .mn-sign{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-top:8px;font-size:.8rem;color:var(--muted)}
