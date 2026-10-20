@@ -93,22 +93,29 @@
     return { card: card, pill: pill, hi: card.querySelector(".mn-hi"), msg: card.querySelector(".mn-msg"), x: card.querySelector(".mn-x") };
   }
 
-  // Turns an open.spotify.com link into its embeddable player URL, or "" if it isn't one.
-  function spotifyEmbedUrl(link) {
-    var match = /^https:\/\/open\.spotify\.com\/(playlist|track|album)\/([A-Za-z0-9]+)/.exec(link || "");
-    return match ? "https://open.spotify.com/embed/" + match[1] + "/" + match[2] + "?theme=0" : "";
+  // Pulls the video ID out of a YouTube link, or "" if it isn't one.
+  function youtubeId(link) {
+    var match = /(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/)([A-Za-z0-9_-]{11})/.exec(link || "");
+    return match ? match[1] : "";
+  }
+
+  // One embed that plays the first song, then the rest of the list in order.
+  function songsEmbedUrl(links) {
+    var ids = (links || []).map(youtubeId).filter(Boolean);
+    if (!ids.length) return "";
+    return "https://www.youtube-nocookie.com/embed/" + ids[0] + "?playlist=" + ids.slice(1).concat(ids[0]).join(",") + "&loop=1&rel=0";
   }
 
   // The player loads only when she taps the button; browsers never let sound start on its own.
   function setUpMusic(button, slot) {
-    var embed = spotifyEmbedUrl(LOVE.spotify);
+    var embed = songsEmbedUrl(LOVE.songs);
     if (!embed) return;
     button.hidden = false;
     button.addEventListener("click", function () {
       if (!slot.firstChild) {
         var frame = document.createElement("iframe");
         frame.src = embed;
-        frame.title = "Our playlist on Spotify";
+        frame.title = "Our songs";
         frame.loading = "lazy";
         frame.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
         slot.appendChild(frame);

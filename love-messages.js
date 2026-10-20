@@ -2,8 +2,9 @@
 // "\n" marks a line break; both components show the lines as written.
 window.PN_LOVE = {
   names: ["Meri Jaan", "Wifey", "Baby", "My Love"],
-  // Our playlist: shown as a small player in the corner note. She taps play; browsers never autoplay sound.
-  spotify: "https://open.spotify.com/playlist/37i9dQZF1EJL2GRuKsEMaS",
+  // Our songs: YouTube links (youtube.com/watch?v=..., youtu.be/..., or music.youtube.com).
+  // They play one after another in a small player in the corner note. She taps play; browsers never autoplay sound.
+  songs: [],
   // Full-screen moment only, so it never repeats what the corner note says.
   bigTitles: ["I love you", "Meri Jaan", "My Wifey", "Always you", "Hey Baby", "You and me"],
   bigMessages: [

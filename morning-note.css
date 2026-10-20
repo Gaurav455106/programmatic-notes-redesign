@@ -13,7 +13,7 @@
 .mn-music:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
 .mn-player{margin-top:10px}
 .mn-player[hidden]{display:none!important}
-.mn-player iframe{display:block;width:100%;height:152px;border:0;border-radius:12px}
+.mn-player iframe{display:block;width:100%;aspect-ratio:16/9;height:auto;border:0;border-radius:12px}
 .mn-x{position:absolute;top:6px;right:6px;width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:18px;cursor:pointer}
 .mn-x:hover{background:var(--bg2);color:var(--ink)}
 .mn-pill{position:fixed;z-index:60;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
