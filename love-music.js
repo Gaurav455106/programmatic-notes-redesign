@@ -1,7 +1,9 @@
 // Love music: background songs with a small round pause / play button.
-// Songs come from two places:
-//   1. PN_LOVE.tracks in love-messages.js: audio files in the music/ folder that may be published.
-//   2. Songs she adds with "⬆ Upload song": saved in her browser (IndexedDB) on her device only,
+// Songs come from three places:
+//   1. Every audio file uploaded to the music/ folder of the GitHub repo (found through the GitHub API),
+//      so a new upload plays on every device without any code change.
+//   2. PN_LOVE.tracks in love-messages.js, for extra file paths.
+//   3. Songs she adds with "⬆ Upload song": saved in her browser (IndexedDB) on her device only,
 //      never uploaded, and still there after reloads.
 // It tries to start as soon as the page loads. Most browsers block sound until the visitor interacts,
 // so if that is refused it starts on her first tap, click or key press instead. A pause is remembered.
@@ -13,9 +15,32 @@
   var STORE = "songs";
   var START_EVENTS = ["pointerdown", "keydown", "touchstart"];
   var VOLUME = 0.6;
+  var MUSIC_FOLDER_API = "https://api.github.com/repos/Gaurav455106/programmatic-notes-redesign/contents/music";
+  var AUDIO_FILE = /\.(mp3|m4a|aac|wav|ogg)$/i;
 
   var LOVE = window.PN_LOVE || {};
-  var published = (LOVE.tracks || []).filter(function (t) { return typeof t === "string" && t; });
+  var configured = (LOVE.tracks || []).filter(function (t) { return typeof t === "string" && t; });
+  var folderSongs = [];
+  var savedSongs = [];
+
+  // Lists the audio files in the repo's music/ folder, in name order, as paths on this site.
+  function loadFolderSongs() {
+    if (location.protocol === "file:") return Promise.resolve([]);
+    return fetch(MUSIC_FOLDER_API, { headers: { Accept: "application/vnd.github+json" } }).then(function (res) {
+      if (res.status === 404) return [];
+      if (!res.ok) throw new Error("GitHub API HTTP " + res.status);
+      return res.json();
+    }).then(function (items) {
+      return (Array.isArray(items) ? items : [])
+        .filter(function (item) { return item.type === "file" && AUDIO_FILE.test(item.name); })
+        .map(function (item) { return item.name; })
+        .sort(function (a, b) { return a.localeCompare(b); })
+        .map(function (name) { return "music/" + encodeURIComponent(name); });
+    }).catch(function (err) {
+      console.warn("[love-music] could not list the music folder:", err.message);
+      return [];
+    });
+  }
 
   function readPaused() {
     try { return localStorage.getItem(PAUSED_KEY) === "1"; } catch (e) { return false; }
@@ -122,12 +147,18 @@
     if (attempt && attempt.then) attempt.then(stopWaiting).catch(function () { /* blocked until she interacts */ });
   }
 
-  function setQueue(saved) {
-    var urls = published.concat(saved.map(function (s) { return URL.createObjectURL(s.blob); }));
+  function rebuildQueue() {
     var wasEmpty = !queue.length;
-    queue = urls;
+    queue = folderSongs.concat(configured, savedSongs.map(function (song) { return song.url; }));
     if (wasEmpty && queue.length) load(0);
     render();
+    if (wasEmpty && queue.length) tryAutoplay();
+  }
+
+  function setSaved(saved) {
+    savedSongs.forEach(function (song) { URL.revokeObjectURL(song.url); });
+    savedSongs = saved.map(function (s) { return { url: URL.createObjectURL(s.blob) }; });
+    rebuildQueue();
   }
 
   audio.addEventListener("ended", nextTrack);
@@ -150,8 +181,9 @@
     if (!files.length) return;
     saveSongs(files).then(loadSavedSongs).then(function (saved) {
       var wasEmpty = !queue.length;
-      setQueue(saved);
-      if (wasEmpty) { savePaused(false); play(); }
+      if (wasEmpty) savePaused(false);
+      setSaved(saved);
+      if (wasEmpty) play();
     }).catch(function (err) {
       console.warn("[love-music] could not save songs:", err.message);
       addBtn.textContent = "Couldn't save. Try again";
@@ -159,13 +191,8 @@
   });
 
   START_EVENTS.forEach(function (name) { document.addEventListener(name, startOnFirstInteraction, true); });
-  // Published tracks start straight away; songs saved on this device join the queue once they load.
-  setQueue([]);
-  tryAutoplay();
-  loadSavedSongs().then(function (saved) {
-    if (!saved.length) return;
-    var hadQueue = queue.length > 0;
-    setQueue(saved);
-    if (!hadQueue) tryAutoplay();
-  });
+  // Each source joins the queue as soon as it answers; the first one with songs starts the music.
+  rebuildQueue();
+  loadFolderSongs().then(function (songs) { folderSongs = songs; if (songs.length) rebuildQueue(); });
+  loadSavedSongs().then(function (saved) { if (saved.length) setSaved(saved); });
 })();
