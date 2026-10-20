@@ -66,6 +66,10 @@ Deep links work: `…/programmatic-notes/#deals`, `#quiz`, `#viva` and so on.
 
 Each event carries a random browser ID, the session, device (mobile/desktop), and, only if the student typed it on the start page, their **name and batch**. Name is optional; leaving it blank keeps them anonymous.
 
+## Session analytics
+
+Open `analytics.html` (same passcode). Sessions, average / median session duration, time of day (IST), day of week, approximate city, devices and recent sessions. Duration is the time the tab was visible, sent as a `heartbeat` event once a minute. Location is looked up once per session from get.geojs.io; only city, region and country are stored.
+
 ## Dashboard
 
 Open `dashboard.html`, enter the passcode. You'll see: unique visitors, sessions, module views, named students, quizzes finished, average quiz score; daily visitors; per-module opens and completion; quiz/lab/drill averages; device split; and a student table you can filter and export as CSV. Pick Today / 7 / 30 / 90 days.

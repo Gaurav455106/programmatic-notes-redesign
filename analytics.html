@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Session Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2318181B'/%3E%3Cpath d='M8 22V14M14 22V9M20 22V16M26 22V11' stroke='%23FBC93D' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// shadcn/ui tokens (zinc) mapped into Tailwind, same names as a shadcn project.
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { sans: ["Geist", "system-ui", "sans-serif"], mono: ["Geist Mono", "ui-monospace", "monospace"] },
+    colors: {
+      border: "hsl(var(--border))", input: "hsl(var(--input))", ring: "hsl(var(--ring))",
+      background: "hsl(var(--background))", foreground: "hsl(var(--foreground))",
+      primary: { DEFAULT: "hsl(var(--primary))", foreground: "hsl(var(--primary-foreground))" },
+      muted: { DEFAULT: "hsl(var(--muted))", foreground: "hsl(var(--muted-foreground))" },
+      accent: { DEFAULT: "hsl(var(--accent))", foreground: "hsl(var(--accent-foreground))" },
+      card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))" },
+      destructive: "hsl(var(--destructive))", chart1: "hsl(var(--chart-1))", chart2: "hsl(var(--chart-2))"
+    },
+    borderRadius: { lg: "var(--radius)", md: "calc(var(--radius) - 2px)", sm: "calc(var(--radius) - 4px)" }
+  } }
+};
+</script>
+<style>
+:root{--background:0 0% 100%;--foreground:240 10% 3.9%;--card:0 0% 100%;--card-foreground:240 10% 3.9%;--primary:240 5.9% 10%;--primary-foreground:0 0% 98%;
+  --muted:240 4.8% 95.9%;--muted-foreground:240 3.8% 46.1%;--accent:240 4.8% 95.9%;--accent-foreground:240 5.9% 10%;--destructive:0 72% 51%;
+  --border:240 5.9% 90%;--input:240 5.9% 90%;--ring:240 5.9% 10%;--radius:0.75rem;--chart-1:228 60% 42%;--chart-2:43 96% 52%}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--background:240 10% 3.9%;--foreground:0 0% 98%;--card:240 10% 5.5%;--card-foreground:0 0% 98%;
+  --primary:0 0% 98%;--primary-foreground:240 5.9% 10%;--muted:240 3.7% 15.9%;--muted-foreground:240 5% 64.9%;--accent:240 3.7% 15.9%;--accent-foreground:0 0% 98%;
+  --destructive:0 70% 62%;--border:240 3.7% 15.9%;--input:240 3.7% 15.9%;--ring:240 4.9% 83.9%;--chart-1:226 80% 72%;--chart-2:43 92% 60%;color-scheme:dark}}
+body{background:hsl(var(--background));color:hsl(var(--foreground))}
+.tab[aria-selected="true"]{background:hsl(var(--background));color:hsl(var(--foreground));box-shadow:0 1px 2px rgb(0 0 0/.08)}
+.num{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body class="min-h-dvh font-sans antialiased">
+<header class="sticky top-0 z-10 border-b border-border bg-background/85 backdrop-blur">
+  <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+    <div>
+      <a href="./" class="text-sm text-muted-foreground transition-colors hover:text-foreground">← Back to notes</a>
+      <h1 class="text-lg font-semibold tracking-tight">Session analytics</h1>
+    </div>
+    <div id="ctrl" class="hidden flex-wrap items-center gap-2">
+      <div role="tablist" aria-label="Date range" class="inline-flex h-9 items-center rounded-lg bg-muted p-1 text-sm text-muted-foreground" id="range">
+        <button role="tab" class="tab rounded-md px-3 py-1 font-medium" data-days="1">Today</button>
+        <button role="tab" class="tab rounded-md px-3 py-1 font-medium" data-days="7">7 days</button>
+        <button role="tab" class="tab rounded-md px-3 py-1 font-medium" data-days="30" aria-selected="true">30 days</button>
+        <button role="tab" class="tab rounded-md px-3 py-1 font-medium" data-days="90">90 days</button>
+      </div>
+      <button id="refresh" class="h-9 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Refresh</button>
+      <button id="lock" class="h-9 rounded-md border border-input px-4 text-sm font-medium transition hover:bg-accent">Lock</button>
+    </div>
+  </div>
+</header>
+
+<main class="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+  <form id="login" class="mx-auto mt-[8vh] grid max-w-sm gap-4 rounded-xl border border-border bg-card p-6 shadow-sm">
+    <div><h2 class="text-xl font-semibold tracking-tight">Unlock dashboard</h2>
+      <p id="cfgNote" class="mt-1 text-sm text-muted-foreground">Enter the passcode you set in <code>supabase/schema.sql</code>.</p></div>
+    <input id="pass" type="password" autocomplete="current-password" placeholder="Passcode" aria-label="Passcode"
+      class="h-10 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring">
+    <button class="h-10 rounded-md bg-primary text-sm font-medium text-primary-foreground transition hover:opacity-90">Open</button>
+    <p id="err" class="text-sm font-medium text-destructive" aria-live="polite"></p>
+  </form>
+
+  <div id="dash" class="grid-cols-1 gap-4" style="display:none">
+    <section id="kpis" class="grid grid-cols-2 gap-4 lg:grid-cols-6"></section>
+
+    <section class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div class="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm lg:col-span-2">
+        <h2 class="font-semibold tracking-tight">Sessions per day</h2>
+        <p class="text-sm text-muted-foreground">Bars are sessions, the line is average session duration.</p>
+        <div class="relative mt-4 h-64"><canvas id="dailyChart" aria-label="Sessions and average duration per day" role="img"></canvas></div>
+      </div>
+      <div class="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
+        <h2 class="font-semibold tracking-tight">Part of day</h2>
+        <p class="text-sm text-muted-foreground">India time (IST).</p>
+        <div id="parts" class="mt-4 grid gap-3"></div>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div class="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm lg:col-span-2">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 class="font-semibold tracking-tight">Time of day</h2><span id="peak" class="rounded-md bg-muted px-2 py-0.5 text-xs font-medium"></span></div>
+        <p class="text-sm text-muted-foreground">Sessions started in each hour (IST).</p>
+        <div class="relative mt-4 h-56"><canvas id="hourChart" aria-label="Sessions by hour of day" role="img"></canvas></div>
+      </div>
+      <div class="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
+        <h2 class="font-semibold tracking-tight">Day of week</h2>
+        <div class="relative mt-4 h-56"><canvas id="weekChart" aria-label="Sessions by day of week" role="img"></canvas></div>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div class="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm lg:col-span-2">
+        <h2 class="font-semibold tracking-tight">Locations</h2>
+        <p class="text-sm text-muted-foreground">Approximate city, from the visitor's network.</p>
+        <div class="mt-3 overflow-x-auto"><table class="w-full min-w-[520px] text-sm" id="places"></table></div>
+      </div>
+      <div class="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
+        <h2 class="font-semibold tracking-tight">Devices</h2>
+        <div id="devices" class="mt-4 grid gap-3"></div>
+      </div>
+    </section>
+
+    <section class="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
+      <h2 class="font-semibold tracking-tight">Recent sessions</h2>
+      <div class="mt-3 overflow-x-auto"><table class="w-full min-w-[640px] text-sm" id="recent"></table></div>
+    </section>
+  </div>
+</main>
+<script src="config.js"></script>
+<script src="analytics-dashboard.js?v=1"></script>
+</body>
+</html>

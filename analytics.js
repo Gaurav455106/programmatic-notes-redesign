@@ -24,5 +24,32 @@
     try{fetch(url+'/rest/v1/events',{method:'POST',headers:h,body:JSON.stringify(row),keepalive:true}).catch(function(){});}catch(e){}
   }
   window.PN={enabled:enabled,track:track,who:who,setWho:setWho};
-  if(isNew)track('visit',{meta:{ref:document.referrer||null}});
+
+  // Location for the visit: city / region / country only (no IP or coordinates are stored).
+  var GEO_URL='https://get.geojs.io/v1/ip/geo.json',GEO_TIMEOUT_MS=4000;
+  function clip(v){return v?String(v).slice(0,60):null}
+  function lookupPlace(){
+    var tz=null;try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone||null}catch(e){}
+    var base={ref:document.referrer||null,tz:tz};
+    if(!window.fetch)return Promise.resolve(base);
+    var timeout=new Promise(function(res){setTimeout(function(){res(null)},GEO_TIMEOUT_MS)});
+    var geo=fetch(GEO_URL).then(function(r){return r.ok?r.json():null}).catch(function(){return null});
+    return Promise.race([geo,timeout]).then(function(g){
+      if(!g)return base;
+      return {ref:base.ref,tz:base.tz,country:clip(g.country),region:clip(g.region),city:clip(g.city)};
+    });
+  }
+  if(isNew&&enabled)lookupPlace().then(function(meta){track('visit',{meta:meta})});
+
+  // Session length: seconds this tab was visible, kept in sessionStorage so auto-reloads continue the same session.
+  var HEARTBEAT_MS=60000;
+  var activeBefore=+(ss('pn-active')||0)||0,visibleSince=document.visibilityState==='hidden'?0:Date.now();
+  function activeSeconds(){return Math.round(activeBefore+(visibleSince?(Date.now()-visibleSince)/1000:0))}
+  function pauseClock(){if(!visibleSince)return;activeBefore+=(Date.now()-visibleSince)/1000;visibleSince=0;ss('pn-active',String(activeBefore))}
+  function beat(){var s=activeSeconds();if(s>0)track('heartbeat',{meta:{active_s:s}})}
+  if(enabled){
+    setInterval(function(){if(visibleSince){ss('pn-active',String(activeSeconds()));beat()}},HEARTBEAT_MS);
+    document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'){pauseClock();beat()}else if(!visibleSince)visibleSince=Date.now()});
+    window.addEventListener('pagehide',function(){pauseClock();beat()});
+  }
 })();
