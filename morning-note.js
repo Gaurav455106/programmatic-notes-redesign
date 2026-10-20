@@ -77,7 +77,9 @@
     card.className = "mn-card";
     card.setAttribute("aria-live", "polite");
     card.innerHTML = '<p class="mn-hi"></p><p class="mn-msg"></p>' +
-      '<div class="mn-sign"><span>all my love, always</span><span class="mn-heart" aria-hidden="true"></span></div>' +
+      '<div class="mn-player" hidden></div>' +
+      '<div class="mn-sign"><button class="mn-music" type="button" hidden>♫ Play our songs</button>' +
+      '<span>all my love, always</span><span class="mn-heart" aria-hidden="true"></span></div>' +
       '<button class="mn-x" type="button" aria-label="Hide note">×</button>';
     var pill = document.createElement("button");
     pill.className = "mn-pill";
@@ -87,7 +89,33 @@
     pill.innerHTML = '<span class="mn-heart" aria-hidden="true"></span>';
     document.body.appendChild(card);
     document.body.appendChild(pill);
+    setUpMusic(card.querySelector(".mn-music"), card.querySelector(".mn-player"));
     return { card: card, pill: pill, hi: card.querySelector(".mn-hi"), msg: card.querySelector(".mn-msg"), x: card.querySelector(".mn-x") };
+  }
+
+  // Turns an open.spotify.com link into its embeddable player URL, or "" if it isn't one.
+  function spotifyEmbedUrl(link) {
+    var match = /^https:\/\/open\.spotify\.com\/(playlist|track|album)\/([A-Za-z0-9]+)/.exec(link || "");
+    return match ? "https://open.spotify.com/embed/" + match[1] + "/" + match[2] + "?theme=0" : "";
+  }
+
+  // The player loads only when she taps the button; browsers never let sound start on its own.
+  function setUpMusic(button, slot) {
+    var embed = spotifyEmbedUrl(LOVE.spotify);
+    if (!embed) return;
+    button.hidden = false;
+    button.addEventListener("click", function () {
+      if (!slot.firstChild) {
+        var frame = document.createElement("iframe");
+        frame.src = embed;
+        frame.title = "Our playlist on Spotify";
+        frame.loading = "lazy";
+        frame.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
+        slot.appendChild(frame);
+      }
+      slot.hidden = !slot.hidden;
+      button.textContent = slot.hidden ? "♫ Play our songs" : "♫ Hide player";
+    });
   }
 
   function startNotes() {

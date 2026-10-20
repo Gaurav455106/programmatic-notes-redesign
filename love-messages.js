@@ -2,6 +2,34 @@
 // "\n" marks a line break; both components show the lines as written.
 window.PN_LOVE = {
   names: ["Meri Jaan", "Wifey", "Baby", "My Love"],
+  // Our playlist: shown as a small player in the corner note. She taps play; browsers never autoplay sound.
+  spotify: "https://open.spotify.com/playlist/37i9dQZF1EJL2GRuKsEMaS",
+  // Full-screen moment only, so it never repeats what the corner note says.
+  bigTitles: ["I love you", "Meri Jaan", "My Wifey", "Always you", "Hey Baby", "You and me"],
+  bigMessages: [
+    "You make ordinary days feel like my favourite ones.",
+    "Thank you for being exactly who you are.",
+    "No rush, no pressure. Just us, at our own pace 🫂",
+    "Your smile is still my favourite notification.",
+    "I'm proud of you. Today, and every day.",
+    "One day: chai, a balcony,\nand you laughing at my terrible jokes 🧿",
+    "You are allowed to rest.\nYou are allowed to just be.",
+    "Of all the random calls in the world,\nyours are the best ones.",
+    "You deserve all the gentleness in the world.",
+    "I choose you, on the loud days and the quiet ones.",
+    "Hugging you through the screen right now 🫂",
+    "Whatever you're feeling, it's welcome here.",
+    "Still smiling about our last silly conversation 🥹",
+    "However many miles apart,\nyou're always close to my heart.",
+    "You are loved. Not for what you do. Just for you.",
+    "Go easy on yourself tonight, okay? ❤️",
+    "Life with you is my favourite adventure.",
+    "Every little memory with you is a treasure.",
+    "Take your time. I'm right here.",
+    "My calm, my chaos, my favourite person.",
+    "Can't wait to make a million more memories with you.",
+    "You're doing beautifully,\neven when it doesn't feel like it."
+  ],
   messages: [
     "Good morning, Meri Jaan ❤️\nYou don't have to be okay today, or explain anything.\nI'm just happy you exist, exactly as you are.",
     "Baby, you can be quiet with me.\nNo questions, no pressure, no need to be strong.\nI'll still be right here, loving you the same.",
