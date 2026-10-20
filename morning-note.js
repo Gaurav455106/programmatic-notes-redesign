@@ -8,6 +8,8 @@
   var ROTATE_MS = 15 * 1000;
   var SWAP_MS = 450;
   var CHECK_EVERY_MS = 30 * 1000;
+  var EFFECTS = ["mn-a-bounce", "mn-a-flip", "mn-a-beat", "mn-a-slide", "mn-a-jello", "mn-a-hearts"];
+  var BURST_COUNT = 8;
 
   // Exam: 21 Oct 2026, 8:00 AM on her device's clock. Messages switch once it starts.
   var EXAM_AT = new Date(2026, 9, 21, 8, 0, 0);
@@ -77,6 +79,27 @@
     return hello + " · " + (left === 1 ? "1 hour" : left + " hours") + " to your exam";
   }
 
+  function heartBurst(card) {
+    for (var i = 0; i < BURST_COUNT; i++) {
+      var b = document.createElement("span");
+      b.className = "mn-burst";
+      b.innerHTML = '<span class="mn-heart"></span>';
+      b.style.setProperty("--x", (10 + Math.random() * 80) + "%");
+      b.style.setProperty("--dx", ((Math.random() - 0.5) * 120) + "px");
+      b.style.setProperty("--t", (1.2 + Math.random() * 0.8) + "s");
+      b.addEventListener("animationend", function (e) { e.currentTarget.remove(); });
+      card.appendChild(b);
+    }
+  }
+
+  function playEffect(card) {
+    var effect = EFFECTS[Math.floor(Math.random() * EFFECTS.length)];
+    EFFECTS.forEach(function (name) { card.classList.remove(name); });
+    void card.offsetWidth;
+    card.classList.add(effect);
+    if (effect === "mn-a-hearts") heartBurst(card);
+  }
+
   function build() {
     var card = document.createElement("aside");
     card.className = "mn-card";
@@ -106,6 +129,7 @@
         ui.hi.textContent = greeting();
         ui.msg.textContent = text;
         ui.msg.classList.remove("mn-swap");
+        playEffect(ui.card);
       }, SWAP_MS);
     }
 
