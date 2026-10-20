@@ -26,6 +26,7 @@ drop policy if exists "anyone can add events" on public.events;
 create policy "anyone can add events" on public.events
   for insert to anon, authenticated with check (true);
 -- No SELECT / UPDATE / DELETE policy: the public key can't read or change anything.
+grant insert on public.events to anon, authenticated;
 
 create table if not exists public.dashboard_secret (pass text not null);
 alter table public.dashboard_secret enable row level security;   -- no policies = unreadable from the browser
@@ -156,7 +157,7 @@ begin
     'places', (select coalesce(json_agg(p order by p.sessions desc), '[]') from (
         select coalesce(city, 'Unknown') as city, region, country, count(*) as sessions,
                round(avg(duration_s)) as avg_duration_s
-        from sl group by city, region, country limit 50) p),
+        from sl group by city, region, country order by count(*) desc limit 50) p),
     'devices', (select coalesce(json_agg(dv), '[]') from (
         select coalesce(device, 'unknown') as device, count(*) as sessions from sl group by 1) dv),
     'recent', (select coalesce(json_agg(r order by r.started_at desc), '[]') from (
